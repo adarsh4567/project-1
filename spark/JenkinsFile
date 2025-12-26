@@ -1,0 +1,86 @@
+pipeline {
+  agent {
+    kubernetes {
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: node
+    image: adarsh7r/ecom-pytest:latest
+    command:
+      - cat
+    tty: true
+    volumeMounts:
+      - name: jar-vol
+        mountPath: /home/jenkins/agent/artifacts
+
+  - name: docker
+    image: docker:27-cli
+    command:
+      - cat
+    tty: true
+    volumeMounts:
+      - name: docker-sock
+        mountPath: /var/run/docker.sock
+      - name: jar-vol
+        mountPath: /home/jenkins/agent/artifacts
+  volumes:
+    - name: jar-vol
+      persistentVolumeClaim:
+        claimName: jar-pvc
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
+        type: Socket
+"""
+    }
+  }
+
+  stages {
+    stage('PySpark Test') {
+      steps {
+        container('node') {
+          sh 'pytest'
+        }
+      }
+    }
+
+    stage('Prepare JARs (fast, from PVC)') {
+      steps {
+        container('node') {
+          sh '''
+            echo "Listing mounted artifacts (PVC):"
+            ls -lh /home/jenkins/agent/artifacts || true
+
+            echo "Ensure workspace artifacts dir exists"
+            mkdir -p "$WORKSPACE/artifacts"
+
+            echo "Copy JARs from PVC mount into workspace (fast local copy)"
+            cp -a /home/jenkins/agent/artifacts/. "$WORKSPACE/artifacts/" || true
+
+            echo "Verify workspace artifacts:"
+            ls -lh "$WORKSPACE/artifacts"
+          '''
+        }
+      }
+    }
+
+    stage('Docker Build') {
+      steps {
+        container('docker') {
+          sh '''
+            echo "Docker client version:"
+            docker version || true
+
+            echo "Building image (build context contains artifacts/):"
+            docker build -t spark-app:2025 .
+            
+            echo "Verify image exists locally:"
+            docker images | grep spark-app || true
+          '''
+        }
+      }
+    }
+  }
+}

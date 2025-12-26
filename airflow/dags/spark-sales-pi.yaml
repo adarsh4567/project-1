@@ -1,0 +1,92 @@
+apiVersion: sparkoperator.k8s.io/v1beta2
+kind: SparkApplication
+metadata:
+  name: spark-sales-job
+  namespace: default
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster
+  image: spark-app:2025
+  imagePullPolicy: IfNotPresent
+  mainApplicationFile: local:///opt/spark/app/sales_job.py
+  # monitoring:  # Enable JMX exporter
+  #   exposeDriverMetrics: true
+  #   exposeExecutorMetrics: true
+  #   prometheus:
+  #     jmxExporterJar: "/opt/spark/jars/jmx_prometheus_javaagent-0.20.0.jar"
+  #     port: 8090
+  deps:
+    jars:
+      - local:///opt/spark/jars/hadoop-aws-3.4.1.jar
+      - local:///opt/spark/jars/bundle-2.32.7.jar
+      - local:///opt/spark/jars/spark-snowflake_2.13-3.1.1.jar
+      - local:///opt/spark/jars/snowflake-jdbc-3.13.21.jar
+  sparkConf:
+    spark.hadoop.fs.s3a.impl: org.apache.hadoop.fs.s3a.S3AFileSystem
+    spark.hadoop.fs.s3a.aws.credentials.provider: org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
+    spark.hadoop.fs.s3a.access.key: "AKIAXWMA6EV3BF4QVB6R"
+    spark.hadoop.fs.s3a.secret.key: "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"
+    spark.hadoop.fs.s3a.endpoint: s3.ap-south-1.amazonaws.com
+    spark.hadoop.fs.s3a.path.style.access: "true"
+    "spark.eventLog.enabled": "true"
+    "spark.eventLog.dir": "s3a://spark-app-storage-remake/ecom_job_events/"
+    "spark.history.fs.logDirectory": "s3a://spark-app-storage-remake/ecom_job_events/"
+    spark.driver.extraJavaOptions: "-Dcom.amazonaws.services.s3.enableV4=true"
+    spark.executor.extraJavaOptions: "-Dcom.amazonaws.services.s3.enableV4=true"
+    # "spark.ui.prometheus.enabled": "true"
+    # "spark.executor.processTreeMetrics.enabled": "true"
+    spark.jars.ivy: ""
+    spark.jars.packages: ""
+    "spark.metrics.conf.*.sink.prometheusServlet.class": "org.apache.spark.metrics.sink.PrometheusServlet"
+    "spark.metrics.conf.*.sink.prometheusServlet.path": "/metrics/prometheus"
+    "spark.metrics.conf.master.sink.prometheusServlet.path": "/metrics/prometheus"
+    "spark.metrics.conf.applications.sink.prometheusServlet.path": "/metrics/prometheus"
+  arguments:
+  - "5000"
+  sparkVersion: 4.0.0
+  driver:
+    labels:
+      app: spark-sales-job
+      version: 4.0.0
+    cores: 1
+    memory: 512m
+    serviceAccount: spark-operator-spark
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      runAsGroup: 185
+      runAsUser: 185
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
+    volumeMounts:
+      - name: logs-pvc
+        mountPath: /data        
+  executor:
+    labels:
+      app: spark-sales-job
+      version: 4.0.0
+    instances: 1
+    cores: 1
+    memory: 1g
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      runAsGroup: 185
+      runAsUser: 185
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
+    volumeMounts:
+      - name: logs-pvc
+        mountPath: /data      
+        
+  volumes:
+      - name: logs-pvc
+        persistentVolumeClaim:
+          claimName: logs-volume          

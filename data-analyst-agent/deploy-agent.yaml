@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecom-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecom-agent
+  template:
+    metadata:
+      labels:
+        app: ecom-agent
+    spec:
+      containers:
+      - name: ecom-agent
+        image: ecom-agent:latest
+        ports:
+        - containerPort: 8000     # adjust if needed
+        envFrom:
+        - secretRef:
+            name: langgraph-secret
+        env:
+        - name: PORT
+          value: "8000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecom-agent-svc
+spec:
+  type: LoadBalancer
+  selector:
+    app: ecom-agent
+  ports:
+  - port: 8000
+    targetPort: 8000

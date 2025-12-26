@@ -1,0 +1,32 @@
+# apiVersion: monitoring.coreos.com/v1
+# kind: PodMonitor
+# metadata:
+#   name: spark-metrics
+#   namespace: default  # Adjust to your Prometheus namespace (e.g., default or monitoring)
+#   labels:
+#     release: prometheus  # Match your Prometheus release label if using Helm
+# spec:
+#   selector:
+#     matchLabels:
+#       spark-role: driver  # Scrapes driver pods
+#   podMetricsEndpoints:
+#     - port: jmx-exporter
+#       path: /metrics
+#       interval: 15s
+#   ---
+
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: spark-app-pods
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      spark-role: executor
+  namespaceSelector:
+    any: true
+  podMetricsEndpoints:
+  - port: metrics
+    path: /metrics/prometheus
+    interval: 15s

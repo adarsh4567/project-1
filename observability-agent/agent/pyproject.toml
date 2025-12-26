@@ -1,0 +1,32 @@
+[project]
+name = "observer-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=0.60.0",
+    "dotenv>=0.9.9",
+    "langchain-core>=0.3.55",
+    "langchain-google-genai>=2.1.12",
+    "langchain-mcp-adapters>=0.1.9",
+    "langgraph>=0.2.76",
+    "pandas>=2.2.3",
+    "psycopg2-binary>=2.9.10",
+    "pydantic>=2.11.3",
+    "pygithub>=2.7.0",
+    "python-dotenv>=1.1.0",
+    "pytz>=2025.2",
+    "requests>=2.32.5",
+]
+
+[tool.setuptools]
+packages = ["observer"]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "langgraph-api>=0.2.18",
+    "langgraph-cli>=0.2.6",
+    "nbformat>=5.10.4",
+]

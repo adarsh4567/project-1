@@ -1,0 +1,32 @@
+[project]
+name = "langgraph-intro"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=2.11.3",
+    "langchain-core>=0.3.55",
+    "langchain-google-genai>=2.1.12",
+    "langgraph>=0.2.76",
+    "langgraph-cli>=0.2.6",
+    "pandas>=2.2.3",
+    "plotly>=6.0.1",
+    "psycopg2-binary>=2.9.10",
+    "pydantic>=2.11.3",
+    "python-dotenv>=1.1.0",
+    "snowflake-sqlalchemy>=1.7.6",
+    "sqlalchemy>=2.0.40",
+    "tabulate>=0.9.0",
+]
+
+[tool.setuptools]
+packages = ["scout"]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "langgraph-api>=0.2.18",
+    "langgraph-cli>=0.2.6",
+    "nbformat>=5.10.4",
+]

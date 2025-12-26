@@ -1,0 +1,8 @@
+{
+    "dependencies": ["."],
+    "graphs": {
+      "ObserverAgent": "./observer/graph.py:graph"
+    },
+    "env": ".env",
+    "python_version": "3.12"
+  }
